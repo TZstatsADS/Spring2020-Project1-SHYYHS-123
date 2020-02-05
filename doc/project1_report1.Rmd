@@ -1,5 +1,5 @@
 ---
-title: "project"
+title: "Changing Trend and Sentiment of Lyrics"
 author: "Haoyu Shang"
 date: "2/3/2020"
 output:
@@ -252,7 +252,7 @@ ggarrange(p12, p13, p14)
 
 ```
 
-From the bar charts above, **love** is a sentiment that is expressed far more frequently than other sentiments in lyrics. If we don't take **love** into consideration, we will find that the top ten sentiments which are used most frequently in lyrics are all negative sentiments. The top ten positive sentiments can reflect people's hopes and pursuit of better life. While the top ten negative sentiments represent the dark side of life. I think the reason why negative sentiments are used more frequently is that people use music to release their bad emotions and face their lives with a positive attitude. At the same time, negative sentiments in lyrics can strike a chord with people. In my personal experience, I prefer listening to songs with negative emotions when I am alone.
+From the bar charts above, **love** is a sentiment that is expressed far more frequently than other sentiment in lyrics. If we don't take **love** into consideration, we will find that the top ten sentiment which are used most frequently in lyrics are all negative sentiment. The top ten positive sentiment can reflect people's hopes and pursuit of better life. While the top ten negative sentiment represent the dark side of life. I think the reason why negative sentiment are used more frequently is that people use music to release their bad emotions and face their lives with a positive attitude. At the same time, negative sentiment in lyrics can strike a chord with people. In my personal experience, I prefer listening to songs with negative emotions when I am alone.
 
 
 
@@ -260,18 +260,17 @@ From the bar charts above, **love** is a sentiment that is expressed far more fr
 
 By analyzing the lyrics, we could get the following results.
 
-
 For different genres of lyrics:
 Hip-Hop music uses far more stemmedword number than other genres. Rock music is the most popular genre among all genres while people's preferences are increasingly diverse. 
 
 For different decades:
 Lyrics have more stemmedword numbers in 2010s than before. **Love, time and baby** are always the three most popular topics.
 
-For different sentiments:
-**Love** is a sentiment that is expressed far more frequently than others in lyrics. Negative sentimens are
-used far more frequently than positve sentiments in lyrics. 
+For different sentiment:
+**Love** is a sentiment that is expressed far more frequently than others in lyrics. Negative sentiment are
+used far more frequently than positve sentiment in lyrics. 
 
-I hope this report can help you get a simple understanding of the changing trend of lyrics and the sentiments contained in lyrics.
+I hope this report can help you get a simple understanding of the changing trend of lyrics and the sentiment contained in lyrics.
 
 ![](/Users/shanghaoyu/Rstudio/Applied data science/ADS_Teaching-master/Projects_StarterCodes/Project1-RNotebook/figs/music.1.jpg)
 
