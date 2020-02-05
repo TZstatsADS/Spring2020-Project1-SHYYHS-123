@@ -230,6 +230,9 @@ I am surprised that Rock music is the most popular genre during the decades. I g
 And we can see the proportion of all the other genres are increasing over the decades. The development of information technology maybe the most important reason behind this phenomenon. Smart devices and the network
 help people enjoy different types of music more easily at home. And people's preferences will also be more diverse.
 
+
+![](/Users/shanghaoyu/Rstudio/Applied data science/ADS_Teaching-master/Projects_StarterCodes/Project1-RNotebook/figs/music.jpg)
+
 ## Emotion analysis.
 
 In the final part I want to analyze the sentiment in lyrics. Which emotions are mostly expressed in lyrics? 
