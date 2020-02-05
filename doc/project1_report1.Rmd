@@ -1,0 +1,279 @@
+---
+title: "project"
+author: "Haoyu Shang"
+date: "2/3/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+![](/Users/shanghaoyu/Rstudio/Applied data science/ADS_Teaching-master/Projects_StarterCodes/Project1-RNotebook/figs/music.2.jpg)
+
+
+\newline
+\newline
+\newline
+
+# Introduction
+
+
+Music is an indispensable part of our daily life. Music can let people express their emotions, relax themselves, and at the same time, it can also get people out of pain. The genres and forms of songs change over time. In this report, we will analyze the change of songs in western countries from 1970 to 2010 and learn the information hidden behind the change.
+
+
+\newline
+\newline
+\newline
+
+
+```{r load libraries, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(tidytext)
+library(plotly)
+library(DT)
+library(tm)
+library(data.table)
+library(scales)
+library(wordcloud2)
+library(gridExtra)
+library(ngram)
+library(shiny) 
+library(RColorBrewer)
+library(dplyr)
+library(SnowballC)
+library(RCurl)
+library(XML)
+library(ggplot2)
+library(gridExtra)
+library(ggpubr)
+```
+
+## Load the processed lyrics data 
+
+We use the processed data for our analysis.
+
+```{r load data, warning=FALSE, message=FALSE}
+# load lyrics data
+load('/Users/shanghaoyu/Rstudio/Applied data science/ADS_Teaching-master/Projects_StarterCodes/Project1-RNotebook/output/processed_lyrics.RData')
+```
+
+## Preparations for visualization
+
+We analyze songs from 1970-2010 and devide the time into five periods.
+
+```{r preparations for visualization, warning=FALSE, message=FALSE}
+years <- seq(1970,2010,by = 10)
+dt_lyrics <- dt_lyrics[dt_lyrics$year>=1970,]
+dt_lyrics <- cbind(dt_lyrics,decade = years[findInterval(dt_lyrics$year,years)])
+corpus <- VCorpus(VectorSource(dt_lyrics$stemmedwords))
+word_tibble <- tidy(corpus) %>%
+  select(text) %>%
+  mutate(id = row_number()) %>%
+  left_join(dt_lyrics, by='id') %>%
+  select(id, text, year, genre, decade, ) %>%
+  unnest_tokens(word, text)
+word_tibble_1970 <- word_tibble %>% filter(decade == 1970) %>% count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n))
+word_tibble_1980 <- word_tibble %>% filter(decade == 1980) %>% count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n))
+word_tibble_1990 <- word_tibble %>% filter(decade == 1990) %>% count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n))
+word_tibble_2000 <- word_tibble %>% filter(decade == 2000) %>% count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n))
+word_tibble_2010 <- word_tibble %>% filter(decade == 2010) %>% count(word, sort = TRUE) %>%
+  mutate(word = reorder(word, n))
+```
+
+## Different genres have different stemmedword numbers
+
+Let's first look at the stemmedword numbers of different genres.
+
+```{r , warning=FALSE, message=FALSE}
+word_tibble1 <- word_tibble %>% group_by(id) %>% count()
+dt_lyrics$nstemmedwords <- word_tibble1$n
+plot_ly(x=dt_lyrics$genre, y = dt_lyrics$nstemmedwords, type = 'box', color = dt_lyrics$genre) %>% layout(xaxis=list(title = 'Genre'), yaxis = list(range = c(0, 400), title = 'Stemmedword Numbers'))
+```
+
+The boxplot above shows that most genres have average stemmedword numbers under 100. However, Hip-Hop music
+has stemmedword numbers significantly larger than the number of other genres. This is correspond to the feature of Hip-Hop music that require more words.
+/
+
+
+## The change of stemmedword numbers from 1970s to 2010s.
+
+In this part, I want to know the change of stemmedword numbers of lyrics in the decades.
+
+```{r,  warning=FALSE, message=FALSE}
+
+plot_ly(x= as.character(dt_lyrics$decade), y = dt_lyrics$nstemmedwords, type = 'box', 
+        color = as.character(dt_lyrics$decade)) %>% 
+  layout(xaxis = list(title='Decade'), yaxis = list(range = c(0,250), title = 'Stemmedword Numbers'))
+```
+
+We can see from the boxplot above that the stemmedword numbers of lyrics haven't changed much from 1970 to 2000. However, songs in 2010s have larger stemmedword numbers than the other four time periods. I think it's because people like lyrics with more contents in 2010s. With the development of technology, people can hear much more songs. And their requirements for lyrics will be higher.
+
+## Wordcloud of the lyrics.
+
+This is a wordcloud of the lyrics.
+
+```{r, warning=FALSE, message=FALSE}
+word_tibble_freq <- word_tibble %>% count(word, sort = TRUE) %>% mutate(word = reorder(word, n))
+wordcloud2(word_tibble_freq, color = "random-light", backgroundColor = "white")
+```
+
+From the wordcloud above, we can see that **love, youre, time and baby** are the mostly used stemmedwords in lyrics. That is to say, **love and time** may be the two most popular topics. In the next part we will further explore the words which are used frequently in different periods.
+
+## Which stemmedwords are artists'favorite in each decade?
+
+In this part, we analyze the top ten frequently used words in lyrics in each period. 
+
+```{r warning=FALSE, message=FALSE}
+p1 <- ggplot(word_tibble_1970[1:10,], aes(word, n, fill = word)) + geom_col() + xlab(NULL) + coord_flip() + labs(x="Stemmedwords", y="Frequence", title = 1970) + theme_light() + theme(legend.position = "none")
+
+p2 <- ggplot(word_tibble_1980[1:10,], aes(word, n, fill = word)) + geom_col() + xlab(NULL) + coord_flip() + labs(x="Stemmedwords", y="Frequence", title = 1980) + theme_light() + theme(legend.position = "none")
+
+p3<- ggplot(word_tibble_1990[1:10,], aes(word, n, fill = word)) + geom_col() + xlab(NULL) + coord_flip() + labs(x="Stemmedwords", y="Frequence", title = 1990) + theme_light() + theme(legend.position = "none")
+
+p4 <- ggplot(word_tibble_2000[1:10,], aes(word, n, fill = word)) + geom_col() + xlab(NULL) + coord_flip() + labs(x="Stemmedwords", y="Frequence", title = 2000) + theme_light() + theme(legend.position = "none")
+
+p5 <- ggplot(word_tibble_2010[1:10,], aes(word, n, fill = word)) + geom_col() + xlab(NULL) + coord_flip() + labs(x="Stemmedwords", y="Frequence", title = 2010) + theme_light() + theme(legend.position = "none")
+
+ggarrange(p1, p2, p3, p4, p5, nrow = 2, ncol = 3)
+
+```
+
+We can see from the bar charts above that from 1970 to 2010, **love and time** are the two most popular 
+topics in lyrics. Also, **life and ill** is also concerned by people. With the abundance of material living standards, people start to pay attention to illness and their own lives. Maybe it's because of the fear of death and the love of life. We can also find **girl** is a popular topic in lyrics in 2010s.
+
+
+## Popularity of different genres in each decade.
+
+In this part we focus on the poroportion of different genres in each decade.
+
+```{r , warning=FALSE, message=FALSE}
+
+dt_lyrics_1970 <- dt_lyrics %>% filter(decade == 1970)
+dt_lyrics_1980 <- dt_lyrics %>% filter(decade == 1980)
+dt_lyrics_1990 <- dt_lyrics %>% filter(decade == 1990)
+dt_lyrics_2000 <- dt_lyrics %>% filter(decade == 2000)
+dt_lyrics_2010 <- dt_lyrics %>% filter(decade == 2010)
+
+song_genre <- dt_lyrics %>%
+  count(genre, sort = TRUE) %>%
+  mutate(genre = reorder(genre, n))
+
+p6 <- ggplot(song_genre, aes(x="", y=n, fill=genre)) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "1970-2010")
+
+song_genre_1970 <- dt_lyrics_1970 %>%
+  count(genre, sort = TRUE) %>%
+  mutate(genre = reorder(genre, n))
+
+p7 <- ggplot(song_genre_1970, aes(x="", y=n, fill=genre)) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "1970")
+
+song_genre_1980 <- dt_lyrics_1980 %>%
+  count(genre, sort = TRUE) %>%
+  mutate(genre = reorder(genre, n))
+
+p8 <- ggplot(song_genre_1980, aes(x="", y=n, fill=genre)) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "1980")
+
+song_genre_1990 <- dt_lyrics_1990 %>%
+  count(genre, sort = TRUE) %>%
+  mutate(genre = reorder(genre, n))
+
+p9 <- ggplot(song_genre_1990, aes(x="", y=n, fill=genre)) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "1990")
+
+song_genre_2000 <- dt_lyrics_2000 %>%
+  count(genre, sort = TRUE) %>%
+  mutate(genre = reorder(genre, n))
+
+p10 <- ggplot(song_genre_2000, aes(x="", y=n, fill=genre)) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "2000")
+
+song_genre_2010 <- dt_lyrics_2010 %>%
+  count(genre, sort = TRUE) %>%
+  mutate(genre = reorder(genre, n))
+
+p11 <- ggplot(song_genre_2010, aes(x="", y=n, fill=genre)) +
+  geom_bar(width = 1, stat = "identity", color = "white") +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  labs(title = "2010")
+
+ggarrange(p6, p7, p8, p9, p10, p11, common.legend = TRUE)
+
+```
+
+
+I am surprised that Rock music is the most popular genre during the decades. I guess it's because Rock can help people express stronger emotions and people can relax more when they're singing or enjoying Rock music.
+And we can see the proportion of all the other genres are increasing over the decades. The development of information technology maybe the most important reason behind this phenomenon. Smart devices and the network
+help people enjoy different types of music more easily at home. And people's preferences will also be more diverse.
+
+## Emotion analysis.
+
+In the final part I want to analyze the sentiment in lyrics. Which emotions are mostly expressed in lyrics? 
+
+```{r, message=FALSE, warning=FALSE}
+words_bing <- word_tibble_freq %>% inner_join(get_sentiments("bing"), by="word") %>%
+  select(word, sentiment, n) %>% mutate(word = reorder(word, n))
+head(words_bing, 10)
+words_bing_without_love <- words_bing %>% filter(word != "love")
+words_bing_positive <- words_bing_without_love %>% filter(sentiment == "positive")
+words_bing_negative <- words_bing_without_love %>% filter(sentiment == "negative")
+
+p12 <- ggplot(words_bing[1:10,], aes(word, n, color = word, fill = word)) + geom_col() + xlab(NULL) + coord_flip()+ labs(x="Sentiment", y="Frequence") + theme_light() + theme(legend.key.size = unit(0.4, "cm"), legend.margin = unit(0, "cm"), legend.title = element_text(size = 6, face = "bold"), legend.text = element_text(size = 6))
+
+p13 <- ggplot(words_bing_positive[1:10,], aes(word, n, fill = word)) + geom_col() + xlab(NULL) + coord_flip() + labs(x="Sentiment", y="Frequence") + theme_light() + theme(legend.key.size = unit(0.4, "cm"), legend.margin = unit(0, "cm"), legend.title = element_text(size = 6, face = "bold"), legend.text = element_text(size = 6))
+
+p14 <- ggplot(words_bing_negative[1:10,], aes(word, n, fill = word)) + geom_col() + xlab(NULL) + coord_flip() + labs(x="Sentiment", y="Frequence") + theme_light() + theme(legend.key.size = unit(0.4, "cm"), legend.margin = unit(0, "cm"), legend.title = element_text(size = 6, face = "bold"), legend.text = element_text(size = 6))
+
+ggarrange(p12, p13, p14)
+
+```
+
+From the bar charts above, **love** is a sentiment that is expressed far more frequently than other sentiments in lyrics. If we don't take **love** into consideration, we will find that the top ten sentiments which are used most frequently in lyrics are all negative sentiments. The top ten positive sentiments can reflect people's hopes and pursuit of better life. While the top ten negative sentiments represent the dark side of life. I think the reason why negative sentiments are used more frequently is that people use music to release their bad emotions and face their lives with a positive attitude. At the same time, negative sentiments in lyrics can strike a chord with people. In my personal experience, I prefer listening to songs with negative emotions when I am alone.
+
+
+
+## Summary
+
+By analyzing the lyrics, we could get the following results.
+
+
+For different genres of lyrics:
+Hip-Hop music uses far more stemmedword number than other genres. Rock music is the most popular genre among all genres while people's preferences are increasingly diverse. 
+
+For different decades:
+Lyrics have more stemmedword numbers in 2010s than before. **Love, time and baby** are always the three most popular topics.
+
+For different sentiments:
+**Love** is a sentiment that is expressed far more frequently than others in lyrics. Negative sentimens are
+used far more frequently than positve sentiments in lyrics. 
+
+I hope this report can help you get a simple understanding of the changing trend of lyrics and the sentiments contained in lyrics.
+
+![](/Users/shanghaoyu/Rstudio/Applied data science/ADS_Teaching-master/Projects_StarterCodes/Project1-RNotebook/figs/music.1.jpg)
+
+
+
