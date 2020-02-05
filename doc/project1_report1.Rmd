@@ -235,12 +235,17 @@ help people enjoy different types of music more easily at home. And people's pre
 In the final part I want to analyze the sentiment in lyrics. Which emotions are mostly expressed in lyrics? 
 
 ```{r, message=FALSE, warning=FALSE}
-words_bing <- word_tibble_freq %>% inner_join(get_sentiments("bing"), by="word") %>%
-  select(word, sentiment, n) %>% mutate(word = reorder(word, n))
+words_bing <- word_tibble_freq %>% inner_join(get_sentiments("bing"), by="word") %>% select(word, sentiment, n) %>% mutate(word = reorder(word, n))
 head(words_bing, 10)
 words_bing_without_love <- words_bing %>% filter(word != "love")
 words_bing_positive <- words_bing_without_love %>% filter(sentiment == "positive")
 words_bing_negative <- words_bing_without_love %>% filter(sentiment == "negative")
+
+word_tibble_positive <- words_bing_positive %>% select(word, n)
+wordcloud2(word_tibble_positive, color = "random-light", backgroundColor = "white")
+
+word_tibble_negative <- words_bing_negative %>% select(word, n)
+wordcloud2(word_tibble_negative, color = "random-dark", backgroundColor = "black")
 
 p12 <- ggplot(words_bing[1:10,], aes(word, n, color = word, fill = word)) + geom_col() + xlab(NULL) + coord_flip()+ labs(x="Sentiment", y="Frequence") + theme_light() + theme(legend.key.size = unit(0.4, "cm"), legend.margin = unit(0, "cm"), legend.title = element_text(size = 6, face = "bold"), legend.text = element_text(size = 6))
 
@@ -252,7 +257,7 @@ ggarrange(p12, p13, p14)
 
 ```
 
-From the bar charts above, **love** is a sentiment that is expressed far more frequently than other sentiment in lyrics. If we don't take **love** into consideration, we will find that the top ten sentiment which are used most frequently in lyrics are all negative sentiment. The top ten positive sentiment can reflect people's hopes and pursuit of better life. While the top ten negative sentiment represent the dark side of life. I think the reason why negative sentiment are used more frequently is that people use music to release their bad emotions and face their lives with a positive attitude. At the same time, negative sentiment in lyrics can strike a chord with people. In my personal experience, I prefer listening to songs with negative emotions when I am alone.
+From the bar charts and wordcolud above, we can find that **love** is a sentiment that is expressed far more frequently than other sentiment in lyrics. If we don't take **love** into consideration, we will find that the top ten sentiment which are used most frequently in lyrics are all negative sentiment. The top ten positive sentiment can reflect people's hopes and pursuit of better life. While the top ten negative sentiment represent the dark side of life. I think the reason why negative sentiment are used more frequently is that people use music to release their bad emotions and face their lives with a positive attitude. At the same time, negative sentiment in lyrics can strike a chord with people. In my personal experience, I prefer listening to songs with negative emotions when I am alone.
 
 
 
